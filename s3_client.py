@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 import config
+import os
 
 class S3Client:
     def __init__(self):
@@ -35,3 +36,19 @@ class S3Client:
         except ClientError as e:
             print(f"Error listing objects: {e}")
             return []
+    
+    def upload_file(self, local_file_path, s3_key=None):
+        """Upload a file to S3"""
+        if not os.path.exists(local_file_path):
+            raise FileNotFoundError(f"Local file not found: {local_file_path}")
+        
+        if s3_key is None:
+            s3_key = os.path.basename(local_file_path)
+        
+        try:
+            self.s3.upload_file(local_file_path, self.bucket_name, s3_key)
+            print(f"✅ Uploaded {local_file_path} to s3://{self.bucket_name}/{s3_key}")
+            return True
+        except ClientError as e:
+            print(f"❌ Error uploading file: {e}")
+            return False
