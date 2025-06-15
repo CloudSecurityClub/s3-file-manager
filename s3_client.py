@@ -52,3 +52,30 @@ class S3Client:
         except ClientError as e:
             print(f"❌ Error uploading file: {e}")
             return False
+    
+    def download_file(self, s3_key, local_file_path=None):
+        """Download a file from S3"""
+        if local_file_path is None:
+            local_file_path = os.path.basename(s3_key)
+        
+        try:
+            self.s3.download_file(self.bucket_name, s3_key, local_file_path)
+            print(f"✅ Downloaded s3://{self.bucket_name}/{s3_key} to {local_file_path}")
+            return True
+        except ClientError as e:
+            error_code = e.response['Error']['Code']
+            if error_code == '404':
+                print(f"❌ File not found: s3://{self.bucket_name}/{s3_key}")
+            else:
+                print(f"❌ Error downloading file: {e}")
+            return False
+    
+    def delete_file(self, s3_key):
+        """Delete a file from S3"""
+        try:
+            self.s3.delete_object(Bucket=self.bucket_name, Key=s3_key)
+            print(f"✅ Deleted s3://{self.bucket_name}/{s3_key}")
+            return True
+        except ClientError as e:
+            print(f"❌ Error deleting file: {e}")
+            return False
